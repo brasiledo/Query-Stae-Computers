@@ -1,0 +1,15 @@
+#Exports List of stale computers (last checked in 45 days)
+
+#### Edit Below #####
+$searchOU='OU'
+$DaysInactive = 45
+$logpath='c:\temp'
+$logname='Stale Computers'
+
+### Do Not Edit ####
+$logdate = Get-Date -format MM-dd-yyyy
+$logfile = "$logpath\$logname-$logdate.csv"
+$time = (Get-Date).Adddays(-($DaysInactive)) 
+
+#searches AD computers that last checked into domain (lastlogontimestamp) over 45 days ($daysinactive) ago.  Exports this list $logpath
+Get-ADComputer -SearchBase $searchOU -Filter {LastLogontimestamp -lt $time -and enabled -eq $true} -Properties lastlogontimestamp, DistinguishedName | Select-Object Name, DistinguishedName, @{N='LastLogontimestamp'; E={[DateTime]::FromFileTime($_.LastLogontimestamp)}} | export-csv $logfile -NoTypeInformation
